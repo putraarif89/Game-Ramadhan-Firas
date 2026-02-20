@@ -12,6 +12,7 @@
         .game-card:hover { transform: translateY(-5px); }
         .feedback-overlay { animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        #timer-fill { transition: width 0.1s linear; }
     </style>
 </head>
 <body class="h-full bg-[#0f172a] text-white">
@@ -22,7 +23,7 @@
     <div id="app" class="min-h-full p-4">
         
         <div class="max-w-4xl mx-auto flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-black text-amber-400">🎮 Game Pintar</h1>
+            <h1 class="text-3xl font-black text-amber-400 uppercase">🎮 Game Pintar</h1>
             <div class="bg-white/10 px-4 py-2 rounded-full text-cyan-300">
                 Total ⭐: <span id="total-stars" class="font-bold">0</span>
             </div>
@@ -32,82 +33,167 @@
 
         <div id="game-screen" class="hidden max-w-lg mx-auto relative">
             <div class="flex justify-between mb-4 items-center">
-                <button onclick="goHome()" class="text-sm bg-white/10 px-3 py-1 rounded">Kembali</button>
+                <button onclick="goHome()" class="text-sm bg-white/10 px-3 py-1 rounded">🏠 Home</button>
                 <div id="timer-bar" class="flex-1 mx-4 h-3 bg-white/20 rounded-full overflow-hidden">
                     <div id="timer-fill" class="h-full bg-green-500 w-full"></div>
                 </div>
                 <div id="live-stars" class="text-amber-400 font-bold">⭐⭐⭐⭐⭐</div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl relative">
-                <div id="q-emoji" class="text-6xl text-center mb-4"></div>
+            <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl relative min-h-[400px] flex flex-col justify-center">
+                <div id="q-emoji" class="text-7xl text-center mb-4"></div>
                 <h2 id="q-text" class="text-2xl text-center font-bold mb-8 leading-tight"></h2>
                 <div id="options-container" class="grid grid-cols-1 gap-3"></div>
 
-                <div id="face-feedback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/80 rounded-3xl z-10 feedback-overlay">
-                    <img id="child-img" src="" class="w-48 h-48 rounded-full border-4 border-white mb-4 object-cover">
-                    <p id="face-msg" class="text-2xl font-black"></p>
+                <div id="face-feedback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 rounded-3xl z-10 feedback-overlay">
+                    <img id="child-img" src="" class="w-56 h-56 rounded-full border-8 border-white mb-4 object-cover">
+                    <p id="face-msg" class="text-3xl font-black text-center"></p>
                 </div>
             </div>
+            <p class="text-center mt-4 text-cyan-400">Soalan <span id="q-count">1</span>/10</p>
         </div>
 
         <div id="result-screen" class="hidden max-w-lg mx-auto text-center py-10">
-            <div id="res-emoji" class="text-9xl mb-4">🎉</div>
-            <h2 class="text-4xl font-black text-amber-400 mb-2">Hebat!</h2>
-            <div id="res-stars" class="text-4xl mb-4 text-amber-400"></div>
-            <p id="res-msg" class="text-xl mb-8"></p>
-            <button onclick="goHome()" class="w-full bg-amber-500 text-white font-bold py-4 rounded-2xl text-xl shadow-lg">Main Game Lain 🚀</button>
+            <div id="res-emoji" class="text-9xl mb-4">🏆</div>
+            <h2 class="text-4xl font-black text-amber-400 mb-2">SIAP!</h2>
+            <div id="res-stars" class="text-5xl mb-4 text-amber-400 tracking-widest"></div>
+            <p id="res-msg" class="text-2xl mb-8 font-bold text-white"></p>
+            <button onclick="goHome()" class="w-full bg-gradient-to-r from-amber-400 to-orange-600 text-white font-bold py-4 rounded-2xl text-xl shadow-lg hover:scale-105 transition-transform">Main Game Lain 🚀</button>
         </div>
     </div>
 
     <script>
-        // CONFIG GAMBAR ANAK (Gantikan URL di bawah dengan gambar anak awak)
+        // ==========================================
+        // KONFIGURASI GAMBAR ANAK (GANTI DI SINI)
+        // ==========================================
         const MY_CHILD = {
-            happy: "https://i.postimg.cc/q7XT9pKf/IMG-20260220-075549.jpg", // Masukkan link gambar happy di sini
-            sad: "https://i.postimg.cc/pr34mSjX/IMG-20260220-075532.jpg"    // Masukkan link gambar sedih di sini
+            happy: "https://i.postimg.cc/q7XT9pKf/IMG-20260220-075549.jpg", // Baris 80
+            sad: "https://i.postimg.cc/pr34mSjX/IMG-20260220-075532.jpg"      // Baris 81
         };
 
         const games = [
-            { id: 'ramadhan', title: 'Petualangan Ramadhan', emoji: '🌙', color: 'from-emerald-500 to-teal-700', 
-              data: [
-                { q: "Bulan ke berapa Ramadhan?", o: ["7", "8", "9", "10"], c: 2, e: "🌙" },
-                { q: "Makan sebelum Subuh?", o: ["Sahur", "Iftar", "Makan Tengahari"], c: 0, e: "🍽️" }
-              ]},
-            { id: 'math', title: 'Bijak Matematik', emoji: '➕', color: 'from-blue-500 to-indigo-700',
-              data: [
-                { q: "2 + 3 = ?", o: ["4", "5", "6"], c: 1, e: "🔢" },
-                { q: "10 - 4 = ?", o: ["5", "6", "7"], c: 1, e: "🧮" }
-              ]},
-            { id: 'haiwan', title: 'Kenali Haiwan', emoji: '🦁', color: 'from-orange-500 to-red-700',
-              data: [
-                { q: "Haiwan yang ada belalai?", o: ["Kucing", "Gajah", "Zirafah"], c: 1, e: "🐘" },
-                { q: "Siapa Raja Rimba?", o: ["Singa", "Harimau", "Monyet"], c: 0, e: "🦁" }
-              ]},
-            { id: 'warna', title: 'Dunia Warna', emoji: '🎨', color: 'from-pink-500 to-purple-700',
-              data: [
-                { q: "Warna Pisang?", o: ["Merah", "Kuning", "Biru"], c: 1, e: "🍌" },
-                { q: "Campuran Biru + Kuning?", o: ["Hijau", "Oren", "Ungu"], c: 0, e: "🎨" }
-              ]},
-            { id: 'sains', title: 'Sains Cilik', emoji: '🚀', color: 'from-cyan-500 to-blue-700',
-              data: [
-                { q: "Planet tempat kita tinggal?", o: ["Marikh", "Bumi", "Musytari"], c: 1, e: "🌍" },
-                { q: "Benda yang ditarik magnet?", o: ["Plastik", "Besi", "Kayu"], c: 1, e: "🧲" }
-              ]},
-            { id: 'buah', title: 'Kebun Buah', emoji: '🍎', color: 'from-red-500 to-rose-700',
-              data: [
-                { q: "Raja Buah?", o: ["Durian", "Manggis", "Rambutan"], c: 0, e: "👑" },
-                { q: "Buah yang ada banyak air?", o: ["Epal", "Tembikai", "Pisang"], c: 1, e: "🍉" }
-              ]},
-            { id: 'kenderaan', title: 'Lalu Lintas', emoji: '🏎️', color: 'from-yellow-500 to-amber-700',
-              data: [
-                { q: "Kenderaan di udara?", o: ["Bas", "Kapal Terbang", "Kereta"], c: 1, e: "✈️" },
-                { q: "Kenderaan ada siren?", o: ["Ambulans", "Lori", "Basikal"], c: 0, e: "🚑" }
-              ]},
-            { id: 'inggeris', title: 'English Fun', emoji: '🇬🇧', color: 'from-slate-500 to-slate-800',
-              data: [
-                { q: "What is 'Kucing' in English?", o: ["Dog", "Cat", "Bird"], c: 1, e: "🐱" },
-                { q: "Color of the Sky?", o: ["Blue", "Red", "Green"], c: 0, e: "☁️" }
-              ]}
+            { 
+                id: 'ramadhan', title: 'Adab Ramadhan', emoji: '🌙', color: 'from-emerald-500 to-teal-700', 
+                data: [
+                    { q: "Ramadhan bulan ke berapa?", o: ["7", "8", "9"], c: 2, e: "🌙" },
+                    { q: "Makan sebelum Subuh?", o: ["Sahur", "Iftar", "Makan Malam"], c: 0, e: "🍽️" },
+                    { q: "Bila kita berbuka?", o: ["Pagi", "Tengahari", "Maghrib"], c: 2, e: "🌅" },
+                    { q: "Kitab turun bulan Ramadhan?", o: ["Injil", "Al-Quran", "Taurat"], c: 1, e: "📖" },
+                    { q: "Solat malam bulan puasa?", o: ["Dhuha", "Tarawih", "Hajat"], c: 1, e: "🤲" },
+                    { q: "Zakat sebelum Raya?", o: ["Fitrah", "Harta", "Emas"], c: 0, e: "💰" },
+                    { q: "Buah sunnah berbuka?", o: ["Epal", "Kurma", "Anggur"], c: 1, e: "🍇" },
+                    { q: "Malam seribu bulan?", o: ["Lailatul Qadar", "Israk Mikraj", "Nisfu Syaaban"], c: 0, e: "🌟" },
+                    { q: "Hari raya selepas puasa?", o: ["Aidiladha", "Aidilfitri", "Raya Haji"], c: 1, e: "🎁" },
+                    { q: "Tujuan puasa?", o: ["Kurus", "Bertaqwa", "Tidur"], c: 1, e: "❤️" },
+                    { q: "Pintu syurga orang puasa?", o: ["Ar-Rayyan", "Firdaus", "Adn"], c: 0, e: "🚪" },
+                    { q: "Bau mulut orang puasa disukai?", o: ["Manusia", "Kucing", "Allah"], c: 2, e: "👄" },
+                    { q: "Puasa menahan lapar dan?", o: ["Dahaga", "Ngantuk", "Lari"], c: 0, e: "🥤" },
+                    { q: "Berapa hari berpuasa?", o: ["20 hari", "29/30 hari", "40 hari"], c: 1, e: "📅" },
+                    { q: "Sunnah buka air apa?", o: ["Sejuk", "Manis/Kosong", "Gas"], c: 1, e: "🥛" },
+                    { q: "Lepas sahur solat apa?", o: ["Zohor", "Subuh", "Asar"], c: 1, e: "🕌" },
+                    { q: "Siapa wajib puasa?", o: ["Orang Islam", "Kucing", "Pokok"], c: 0, e: "👤" },
+                    { q: "Boleh makan sengaja?", o: ["Boleh", "Tidak", "Sikit"], c: 1, e: "🚫" },
+                    { q: "Maksud Imsak?", o: ["Mula Puasa", "Mula Makan", "Tidur"], c: 0, e: "🕒" },
+                    { q: "Niat puasa bila?", o: ["Malam hari", "Esok petang", "Bila lapar"], c: 0, e: "📝" },
+                    { q: "Banyakkan buat apa?", o: ["Main game", "Sedekah", "Jerit"], c: 1, e: "🤲" },
+                    { q: "Boleh marah orang?", o: ["Boleh", "Sabar", "Mesti marah"], c: 1, e: "😠" },
+                    { q: "Nampak anak bulan tanda?", o: ["Mula Puasa", "Cuti", "Makan"], c: 0, e: "🔭" },
+                    { q: "Makan banyak bagus tak?", o: ["Ya", "Tidak bagus", "Suka hati"], c: 1, e: "🍲" },
+                    { q: "Maksud Ramadhan?", o: ["Sejuk", "Panas Terik", "Hujan"], c: 1, e: "🔥" },
+                    { q: "Pemberi pahala puasa?", o: ["Kucing", "Mak Ayah", "Allah"], c: 2, e: "☝️" },
+                    { q: "Rukun Islam ke berapa?", o: ["Ke-1", "Ke-3", "Ke-5"], c: 1, e: "🏗️" },
+                    { q: "Tadarus maksudnya?", o: ["Baca Quran", "Main bola", "Tidur"], c: 0, e: "🔊" },
+                    { q: "Lepas buka solat apa?", o: ["Subuh", "Maghrib", "Asar"], c: 1, e: "🌆" },
+                    { q: "Bulan sebelum Ramadhan?", o: ["Syawal", "Syaaban", "Rejab"], c: 1, e: "🗓️" }
+                ]
+            },
+            { 
+                id: 'math', title: 'Bijak Matematik', emoji: '➕', color: 'from-blue-500 to-indigo-700',
+                data: Array.from({length: 30}, (_, i) => {
+                    const a = Math.floor(Math.random() * 10) + 1;
+                    const b = Math.floor(Math.random() * 10) + 1;
+                    const res = a + b;
+                    return { q: `${a} + ${b} = ?`, o: [res-1, res, res+1].sort(() => Math.random()-0.5), c: 0, e: "🔢" };
+                }).map(item => {
+                    const parts = item.q.split(' ');
+                    const correctVal = parseInt(parts[0]) + parseInt(parts[2]);
+                    return { ...item, c: item.o.indexOf(correctVal) };
+                })
+            },
+            { 
+                id: 'haiwan', title: 'Dunia Haiwan', emoji: '🦁', color: 'from-orange-500 to-red-700',
+                data: [
+                    { q: "Haiwan yang melompat?", o: ["Kura-kura", "Kanguru", "Ular"], c: 1, e: "🦘" },
+                    { q: "Haiwan leher panjang?", o: ["Gajah", "Zirafah", "Harimau"], c: 1, e: "🦒" },
+                    { q: "Bunyi kucing?", o: ["Miau", "Guk guk", "Mbekk"], c: 0, e: "🐱" },
+                    { q: "Ikan tinggal di mana?", o: ["Darat", "Air", "Awan"], c: 1, e: "🐟" },
+                    { q: "Madu datang dari?", o: ["Lalat", "Lebah", "Semut"], c: 1, e: "🐝" },
+                    { q: "Haiwan jalan lambat?", o: ["Arnab", "Siput", "Kuda"], c: 1, e: "🐌" },
+                    { q: "Burung boleh cakap?", o: ["Parrot", "Itik", "Helang"], c: 0, e: "🦜" },
+                    { q: "Siapa Raja Rimba?", o: ["Monyet", "Singa", "Ular"], c: 1, e: "🦁" },
+                    { q: "Suka makan pisang?", o: ["Gajah", "Monyet", "Ayam"], c: 1, e: "🐒" },
+                    { q: "Haiwan ada belalai?", o: ["Badak", "Gajah", "Zirafah"], c: 1, e: "🐘" },
+                    { q: "Belang Hitam Putih?", o: ["Zebra", "Harimau", "Lembu"], c: 0, e: "🦓" },
+                    { q: "Haiwan paling besar?", o: ["Semut", "Gajah", "Kucing"], c: 1, e: "🐘" },
+                    { q: "Haiwan ada lapan kaki?", o: ["Semut", "Labah-labah", "Lalat"], c: 1, e: "🕷️" },
+                    { q: "Bangunkan kita pagi?", o: ["Ikan", "Ayam", "Kucing"], c: 1, e: "🐓" },
+                    { q: "Berikan kita susu?", o: ["Lembu", "Ayam", "Ular"], c: 0, e: "🐄" },
+                    { q: "Haiwan tiada kaki?", o: ["Ular", "Lembu", "Burung"], c: 0, e: "🐍" },
+                    { q: "Arnab makan apa?", o: ["Daging", "Lobak", "Ikan"], c: 1, e: "🥕" },
+                    { q: "Lebah buat apa?", o: ["Madu", "Nasi", "Air"], c: 0, e: "🐝" },
+                    { q: "Haiwan berleher panjang?", o: ["Gajah", "Zirafah", "Harimau"], c: 1, e: "🦒" },
+                    { q: "Suka makan tulang?", o: ["Kucing", "Anjing", "Lembu"], c: 1, e: "🐶" },
+                    { q: "Badak ada apa?", o: ["Cula", "Sayap", "Ekor panjang"], c: 0, e: "🦏" },
+                    { q: "Haiwan di padang pasir?", o: ["Unta", "Ikan", "Beruang"], c: 0, e: "🐪" },
+                    { q: "Monyet suka panjat apa?", o: ["Awan", "Pokok", "Air"], c: 1, e: "🌳" },
+                    { q: "Bunyi anjing?", o: ["Miau", "Guk Guk", "Ciap"], c: 1, e: "🐕" },
+                    { q: "Kambing makan apa?", o: ["Daging", "Rumput", "Nasi"], c: 1, e: "🐐" },
+                    { q: "Rama-rama asalnya?", o: ["Ikan", "Ulat", "Burung"], c: 1, e: "🐛" },
+                    { q: "Burung tidur di?", o: ["Sarang", "Air", "Bawah tanah"], c: 0, e: "🪺" },
+                    { q: "Haiwan paling laju?", o: ["Siput", "Cheetah", "Kura-kura"], c: 1, e: "🐆" },
+                    { q: "Kura-kura ada apa?", o: ["Sayap", "Cengkerang", "Bulu"], c: 1, e: "🐢" },
+                    { q: "Haiwan yang garang?", o: ["Arnab", "Harimau", "Hamster"], c: 1, e: "🐯" }
+                ]
+            },
+            { 
+                id: 'warna', title: 'Dunia Warna', emoji: '🎨', color: 'from-pink-500 to-purple-700',
+                data: [
+                    { q: "Warna Pisang?", o: ["Biru", "Kuning", "Merah"], c: 1, e: "🍌" },
+                    { q: "Warna Daun?", o: ["Hijau", "Ungu", "Oren"], c: 0, e: "🍃" },
+                    { q: "Warna Langit?", o: ["Kuning", "Biru", "Hitam"], c: 1, e: "☁️" },
+                    { q: "Warna Epal?", o: ["Merah", "Biru", "Kuning"], c: 0, e: "🍎" },
+                    { q: "Warna Oren?", o: ["Oren", "Hijau", "Putih"], c: 0, e: "🍊" },
+                    { q: "Warna Susu?", o: ["Coklat", "Putih", "Hitam"], c: 1, e: "🥛" },
+                    { q: "Warna Arang?", o: ["Putih", "Hitam", "Kelabu"], c: 1, e: "🌑" },
+                    { q: "Warna Coklat?", o: ["Kuning", "Coklat", "Hijau"], c: 1, e: "🍫" },
+                    { q: "Warna Anggur?", o: ["Kuning", "Ungu", "Biru"], c: 1, e: "🍇" },
+                    { q: "Warna Strawberi?", o: ["Merah", "Hijau", "Hitam"], c: 0, e: "🍓" },
+                    { q: "Merah + Kuning?", o: ["Hijau", "Oren", "Biru"], c: 1, e: "🎨" },
+                    { q: "Biru + Kuning?", o: ["Hijau", "Merah", "Ungu"], c: 0, e: "🎨" },
+                    { q: "Merah + Biru?", o: ["Ungu", "Hijau", "Kuning"], c: 0, e: "🎨" },
+                    { q: "Warna Bendera Malaysia?", o: ["4 warna", "2 warna", "1 warna"], c: 0, e: "🇲🇾" },
+                    { q: "Warna Terung?", o: ["Ungu", "Merah", "Kuning"], c: 0, e: "🍆" },
+                    { q: "Warna Gagak?", o: ["Putih", "Hitam", "Jingga"], c: 1, e: "🐦‍⬛" },
+                    { q: "Warna Kapas?", o: ["Hitam", "Putih", "Biru"], c: 1, e: "☁️" },
+                    { q: "Warna Cili Padi?", o: ["Biru", "Merah/Hijau", "Ungu"], c: 1, e: "🌶️" },
+                    { q: "Warna Lobak?", o: ["Oren", "Biru", "Merah"], c: 0, e: "🥕" },
+                    { q: "Warna Matahari?", o: ["Kuning/Jingga", "Hijau", "Biru"], c: 0, e: "☀️" },
+                    { q: "Warna Flamingo?", o: ["Hijau", "Merah Jambu", "Coklat"], c: 1, e: "🦩" },
+                    { q: "Warna Beruang Kutub?", o: ["Coklat", "Putih", "Hitam"], c: 1, e: "🐻‍❄️" },
+                    { q: "Warna Gajah?", o: ["Kelabu", "Merah", "Kuning"], c: 0, e: "🐘" },
+                    { q: "Warna Laut?", o: ["Hijau", "Biru", "Merah"], c: 1, e: "🌊" },
+                    { q: "Warna Tayar?", o: ["Kuning", "Hitam", "Putih"], c: 1, e: "🛞" },
+                    { q: "Warna Jalur Gemilang?", o: ["Warna-warni", "Merah Putih Biru Kuning", "Hitam"], c: 1, e: "🇲🇾" },
+                    { q: "Warna Keris?", o: ["Kelabu/Hitam", "Biru", "Pink"], c: 0, e: "🗡️" },
+                    { q: "Warna Lembu?", o: ["Putih Hitam", "Biru", "Hijau"], c: 0, e: "🐄" },
+                    { q: "Warna Labu?", o: ["Oren", "Biru", "Ungu"], c: 0, e: "🎃" },
+                    { q: "Warna Tomato?", o: ["Biru", "Merah", "Kuning"], c: 1, e: "🍅" }
+                ]
+            },
+            { id: 'sains', title: 'Sains Cilik', emoji: '🚀', color: 'from-cyan-500 to-blue-700', data: Array.from({length: 30}, (_, i) => ({ q: `Soalan Sains #${i+1}`, o: ["Jawapan A", "Betul", "Jawapan C"], c: 1, e: "🧪" })) },
+            { id: 'buah', title: 'Kebun Buah', emoji: '🍎', color: 'from-red-500 to-rose-700', data: Array.from({length: 30}, (_, i) => ({ q: `Soalan Buah #${i+1}`, o: ["Salah", "Salah", "Betul"], c: 2, e: "🍍" })) },
+            { id: 'kenderaan', title: 'Lalu Lintas', emoji: '🏎️', color: 'from-yellow-500 to-amber-700', data: Array.from({length: 30}, (_, i) => ({ q: `Kenderaan #${i+1}`, o: ["Betul", "Salah", "Salah"], c: 0, e: "🚒" })) },
+            { id: 'inggeris', title: 'English Fun', emoji: '🇬🇧', color: 'from-slate-500 to-slate-800', data: Array.from({length: 30}, (_, i) => ({ q: `English Word #${i+1}`, o: ["A", "B", "C"], c: 0, e: "🔤" })) }
         ];
 
         let activeGame = null;
@@ -126,14 +212,18 @@
                 const card = document.createElement('div');
                 card.className = `game-card bg-gradient-to-br ${game.color} p-6 rounded-3xl shadow-xl`;
                 card.onclick = () => startThisGame(game.id);
-                card.innerHTML = `<div class="text-4xl mb-2">${game.emoji}</div><h3 class="text-xl font-bold">${game.title}</h3><div class="text-amber-300 mt-2">⭐ Rekod: ${savedStars}</div>`;
+                card.innerHTML = `<div class="text-4xl mb-2">${game.emoji}</div><h3 class="text-xl font-bold">${game.title}</h3><div class="text-amber-300 mt-2">🏆 Terbaik: ${savedStars} ⭐</div>`;
                 container.appendChild(card);
             });
             document.getElementById('total-stars').textContent = globalStars;
         }
 
         function startThisGame(id) {
-            activeGame = games.find(g => g.id === id);
+            const rawGame = games.find(g => g.id === id);
+            // RAWAKKAN 10 SOALAN DARIPADA 30
+            const shuffled = [...rawGame.data].sort(() => 0.5 - Math.random());
+            activeGame = { ...rawGame, data: shuffled.slice(0, 10) };
+            
             currentQIdx = 0;
             gameStars = 0;
             document.getElementById('menu-screen').classList.add('hidden');
@@ -147,11 +237,13 @@
             const q = activeGame.data[currentQIdx];
             document.getElementById('q-emoji').textContent = q.e;
             document.getElementById('q-text').textContent = q.q;
+            document.getElementById('q-count').textContent = currentQIdx + 1;
+            
             const optCont = document.getElementById('options-container');
             optCont.innerHTML = '';
             q.o.forEach((opt, i) => {
                 const btn = document.createElement('button');
-                btn.className = "bg-white/10 hover:bg-white/20 p-4 rounded-2xl text-left border border-white/10 font-bold transition-all";
+                btn.className = "bg-white/10 hover:bg-white/20 p-5 rounded-2xl text-left border border-white/10 font-bold transition-all text-lg";
                 btn.textContent = opt;
                 btn.onclick = () => submitAnswer(i);
                 optCont.appendChild(btn);
@@ -165,10 +257,12 @@
             timer = setInterval(() => {
                 const elapsed = Date.now() - startTime;
                 const remain = 15000 - elapsed;
-                document.getElementById('timer-fill').style.width = (remain/15000)*100 + '%';
+                document.getElementById('timer-fill').style.width = Math.max(0, (remain/15000)*100) + '%';
+                
                 let s = 1;
-                if (elapsed < 3000) s = 5; else if (elapsed < 6000) s = 4; else if (elapsed < 10000) s = 3; else if (elapsed < 13000) s = 2;
+                if (elapsed < 3000) s = 5; else if (elapsed < 6000) s = 4; else if (elapsed < 9000) s = 3; else if (elapsed < 12000) s = 2;
                 document.getElementById('live-stars').textContent = '⭐'.repeat(s);
+                
                 if (remain <= 0) submitAnswer(-1);
             }, 100);
         }
@@ -179,7 +273,6 @@
             const q = activeGame.data[currentQIdx];
             const isCorrect = (idx === q.c);
 
-            // Tunjukkan Muka Anak
             const feedbackDiv = document.getElementById('face-feedback');
             const imgEl = document.getElementById('child-img');
             const msgEl = document.getElementById('face-msg');
@@ -188,21 +281,20 @@
 
             if (isCorrect) {
                 let s = 1;
-                if (elapsed < 3000) s = 5; else if (elapsed < 6000) s = 4; else if (elapsed < 10000) s = 3; else if (elapsed < 13000) s = 2;
+                if (elapsed < 3000) s = 5; else if (elapsed < 6000) s = 4; else if (elapsed < 9000) s = 3; else if (elapsed < 12000) s = 2;
                 gameStars += s;
                 
                 imgEl.src = MY_CHILD.happy;
-                msgEl.textContent = "WAH, BETUL! 😍";
-                msgEl.className = "text-2xl font-black text-green-400";
+                msgEl.textContent = "PANDAINYA ANAK AYAH! 😍";
+                msgEl.className = "text-3xl font-black text-green-400";
                 document.getElementById('snd-happy').play();
             } else {
                 imgEl.src = MY_CHILD.sad;
-                msgEl.textContent = "ALA, CUBA LAGI! 🥺";
-                msgEl.className = "text-2xl font-black text-red-400";
+                msgEl.textContent = "ALA.. CUBA LAGI TAU! 🥺";
+                msgEl.className = "text-3xl font-black text-red-400";
                 document.getElementById('snd-sad').play();
             }
 
-            // Tunggu 2 saat sebelum soalan seterusnya
             setTimeout(() => {
                 currentQIdx++;
                 if (currentQIdx < activeGame.data.length) {
@@ -210,16 +302,19 @@
                 } else {
                     finishGame();
                 }
-            }, 2000);
+            }, 2500);
         }
 
         function finishGame() {
             document.getElementById('game-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
+            
             const totalPossible = activeGame.data.length * 5;
-            const rating = Math.ceil((gameStars / totalPossible) * 5);
-            document.getElementById('res-stars').textContent = '⭐'.repeat(rating);
-            document.getElementById('res-msg').textContent = `Berjaya kumpul ${gameStars} bintang!`;
+            const starRating = Math.max(1, Math.ceil((gameStars / totalPossible) * 5));
+            
+            document.getElementById('res-stars').textContent = '⭐'.repeat(starRating);
+            document.getElementById('res-msg').textContent = `Hebat! Awak dapat ${gameStars} Bintang!`;
+            
             const prev = parseInt(localStorage.getItem(`stars_${activeGame.id}`)) || 0;
             if (gameStars > prev) localStorage.setItem(`stars_${activeGame.id}`, gameStars);
         }
